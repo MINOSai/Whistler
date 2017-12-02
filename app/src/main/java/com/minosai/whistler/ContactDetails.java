@@ -29,7 +29,7 @@ public class ContactDetails extends AppCompatActivity {
     List<String> names = Arrays.asList("Mom","Dad","Brother");
     List<String> numbers = Arrays.asList("9841079300","9841062300","9841062377");
     RecyclerView recyclerView;
-    EmergencyContactAdapter adapter;
+//    EmergencyContactAdapter adapter;
     ConstraintLayout constraintLayout;
     FloatingActionButton fab;
 
@@ -40,14 +40,14 @@ public class ContactDetails extends AppCompatActivity {
 
         constraintLayout = (ConstraintLayout)findViewById(R.id.contactDetailsConstraint);
 
-        recyclerView = (RecyclerView)findViewById(R.id.emergencyContactList);
-        adapter = new EmergencyContactAdapter(names,numbers);
-
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setItemAnimator(new DefaultItemAnimator());
-        recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-        recyclerView.setAdapter(adapter);
+//        recyclerView = (RecyclerView)findViewById(R.id.emergencyContactList);
+//        adapter = new EmergencyContactAdapter(names,numbers);
+//
+//        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
+//        recyclerView.setLayoutManager(layoutManager);
+//        recyclerView.setItemAnimator(new DefaultItemAnimator());
+//        recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
+//        recyclerView.setAdapter(adapter);
 
         fab = (FloatingActionButton)findViewById(R.id.newContactFab);
 
@@ -58,45 +58,6 @@ public class ContactDetails extends AppCompatActivity {
                 pickContact();
             }
         });
-
-        ItemTouchHelper.SimpleCallback itemTouchHelperCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
-            @Override
-            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-                return false;
-            }
-
-            @Override
-            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-                if (viewHolder instanceof EmergencyContactAdapter.MyViewHolder) {
-
-                    // backup of removed item for undo purpose
-                    final String newName = names.get(viewHolder.getAdapterPosition());
-                    final String newNumber = numbers.get(viewHolder.getAdapterPosition());
-                    final int deletedIndex = viewHolder.getAdapterPosition();
-
-                    // remove the item from recycler view
-                    adapter.removeItem(viewHolder.getAdapterPosition());
-
-                    // showing snack bar with Undo option
-                    Snackbar snackbar = Snackbar
-                            .make(constraintLayout, "Contact removed", Snackbar.LENGTH_LONG);
-                    snackbar.setAction("UNDO", new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            adapter.restoreItem(newName, newNumber, deletedIndex);
-                        }
-                    });
-                    snackbar.setActionTextColor(Color.YELLOW);
-                    snackbar.show();
-                }
-            }
-
-            @Override
-            public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
-                // view the background view
-            }
-        };
-        new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(recyclerView);
     }
 
     private void pickContact() {
@@ -126,29 +87,4 @@ public class ContactDetails extends AppCompatActivity {
         }
         // "cursor" is closed here already
     }
-//    @Override
-//    public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction, int position) {
-//        if (viewHolder instanceof EmergencyContactAdapter.MyViewHolder) {
-//
-//            // backup of removed item for undo purpose
-//            final String newName = names.get(viewHolder.getAdapterPosition());
-//            final String newNumber = numbers.get(viewHolder.getAdapterPosition());
-//            final int deletedIndex = viewHolder.getAdapterPosition();
-//
-//            // remove the item from recycler view
-//            adapter.removeItem(viewHolder.getAdapterPosition());
-//
-//            // showing snack bar with Undo option
-//            Snackbar snackbar = Snackbar
-//                    .make(constraintLayout, "Contact removed", Snackbar.LENGTH_LONG);
-//            snackbar.setAction("UNDO", new View.OnClickListener() {
-//                @Override
-//                public void onClick(View view) {
-//                    adapter.restoreItem(newName, newNumber, deletedIndex);
-//                }
-//            });
-//            snackbar.setActionTextColor(Color.YELLOW);
-//            snackbar.show();
-//        }
-//    }
 }
