@@ -1,41 +1,40 @@
-package com.minosai.whistler;
+package com.minosai.whistler.contacts;
 
 import android.Manifest;
+import android.content.ContentUris;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.graphics.Canvas;
-import android.graphics.Color;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-import java.util.Arrays;
-import java.util.List;
+import com.minosai.whistler.R;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
 
 public class ContactDetails extends AppCompatActivity {
 
     static final int PICK_CONTACT = 1;
 
-    List<String> names = Arrays.asList("Mom","Dad","Brother");
-    List<String> numbers = Arrays.asList("9841079300","9841062300","9841062377");
     RecyclerView recyclerView;
-//    EmergencyContactAdapter adapter;
+    ContactsAdapter mAdapter;
     ConstraintLayout constraintLayout;
     FloatingActionButton fab;
 
@@ -45,6 +44,8 @@ public class ContactDetails extends AppCompatActivity {
     private Uri uriContact;
     private String contactID;
 
+    private ArrayList<Contact> mContacts = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,13 +54,12 @@ public class ContactDetails extends AppCompatActivity {
         constraintLayout = (ConstraintLayout)findViewById(R.id.contactDetailsConstraint);
 
         recyclerView = (RecyclerView)findViewById(R.id.emergencyContactList);
-//        adapter = new EmergencyContactAdapter(names,numbers);
-//
-//        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
-//        recyclerView.setLayoutManager(layoutManager);
-//        recyclerView.setItemAnimator(new DefaultItemAnimator());
-//        recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-//        recyclerView.setAdapter(adapter);
+        mAdapter = new ContactsAdapter(mContacts);
+
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.setAdapter(mAdapter);
 
         fab = (FloatingActionButton)findViewById(R.id.newContactFab);
 
@@ -92,9 +92,11 @@ public class ContactDetails extends AppCompatActivity {
             Log.d(TAG, "Response: " + data.toString());
             uriContact = data.getData();
 
-            retrieveContactName();
-            retrieveContactNumber();
+//            retrieveContactName();
+//            retrieveContactNumber();
 //            retrieveContactPhoto();
+            mContacts.add(new Contact(retrieveContactName(),retrieveContactNumber(),retrieveContactPhoto()));
+            mAdapter.notifyDataSetChanged();
         }
     }
 
@@ -115,7 +117,7 @@ public class ContactDetails extends AppCompatActivity {
         }
     }
 
-    private void retrieveContactNumber() {
+    private String retrieveContactNumber() {
 
         String contactNumber = null;
 
@@ -143,9 +145,10 @@ public class ContactDetails extends AppCompatActivity {
         }
         cursorPhone.close();
         Log.d(TAG, "Contact Phone Number: " + contactNumber);
+        return contactNumber;
     }
 
-    private void retrieveContactName() {
+    private String retrieveContactName() {
 
         String contactName = null;
         Cursor cursor = getContentResolver().query(uriContact, null, null, null, null);
@@ -154,6 +157,28 @@ public class ContactDetails extends AppCompatActivity {
         }
         cursor.close();
         Log.d(TAG, "Contact Name: " + contactName);
+        return contactName;
 
+    }
+
+    private Bitmap retrieveContactPhoto() {
+
+        Bitmap photo = null;
+        try {
+            InputStream inputStream = ContactsContract.Contacts.openContactPhotoInputStream(getContentResolver(),
+                    ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, new Long(contactID)));
+
+            if (inputStream != null) {
+                photo = BitmapFactory.decodeStream(inputStream);
+//                return photo;
+            }
+
+            assert inputStream != null;
+//            inputStream.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return photo;
     }
 }
