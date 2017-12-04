@@ -174,7 +174,8 @@ public class ContactDetails extends AppCompatActivity {
             }
 
             assert inputStream != null;
-//            inputStream.close();
+            inputStream.close();
+            return photo;
 
         } catch (Exception e) {
             e.printStackTrace();
