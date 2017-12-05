@@ -28,14 +28,14 @@
 
             <ImageView
                 android:id="@+id/contact_photo_imageview"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="150px"
+                android:layout_height="150px"
                 android:layout_margin="8dp"
                 android:layout_marginStart="8dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@mipmap/ic_launcher_round" />
+                app:srcCompat="@drawable/empty_contact" />
 
             <TextView
                 android:id="@+id/contactName"
@@ -45,6 +45,7 @@
                 android:layout_alignParentTop="true"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="8dp"
+                android:maxLines="1"
                 android:text="TextView"
                 android:textColor="@android:color/black"
                 android:textSize="18sp"
@@ -74,6 +75,7 @@
                 android:layout_marginTop="8dp"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
+                android:padding="8dp"
                 android:src="@drawable/delete"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"

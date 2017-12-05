@@ -41,4 +41,8 @@ public class Contact {
     public void setContactPhoto(Bitmap contactPhoto) {
         this.contactPhoto = contactPhoto;
     }
+
+    public void sendMessage(String msg){
+//        TODO: send sms
+    }
 }

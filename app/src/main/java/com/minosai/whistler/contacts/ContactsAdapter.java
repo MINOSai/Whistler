@@ -33,8 +33,14 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
     public void onBindViewHolder(final ContactsAdapter.ViewHolder holder, int position) {
         final Contact currentContact = mContacts.get(position);
         holder.contactNumber.setText(currentContact.getContactNumber());
-        holder.contactName.setText(currentContact.getContactName());
-        holder.contactPhoto.setImageBitmap(currentContact.getContactPhoto());
+
+        String currentContactName = currentContact.getContactName();
+        String[] nameParts = currentContactName.split(" ");
+        holder.contactName.setText(nameParts[0]+" "+nameParts[1]+" "+nameParts[2]);
+
+        if(currentContact.getContactPhoto() != null) {
+            holder.contactPhoto.setImageBitmap(currentContact.getContactPhoto());
+        }
 
         holder.removeContact.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -54,7 +60,7 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
 
     class ViewHolder extends RecyclerView.ViewHolder{
 
-        TextView contactName,contactNumber;
+        TextView contactName,contactNumber,emptyText;
         ImageView contactPhoto,removeContact;
 
         public ViewHolder(View itemView) {
@@ -63,6 +69,7 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
             contactNumber = itemView.findViewById(R.id.contactNumber);
             contactPhoto = itemView.findViewById(R.id.contact_photo_imageview);
             removeContact = itemView.findViewById(R.id.contact_delete_imageview);
+            emptyText = itemView.findViewById(R.id.contactsEmptyTextView);
         }
     }
 }
