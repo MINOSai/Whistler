@@ -2,7 +2,9 @@ package com.minosai.whistler.contacts;
 
 import android.Manifest;
 import android.content.ContentUris;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -19,15 +21,18 @@ import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.minosai.whistler.R;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ContactDetails extends AppCompatActivity {
 
@@ -38,6 +43,7 @@ public class ContactDetails extends AppCompatActivity {
     ConstraintLayout constraintLayout;
     FloatingActionButton fab;
 
+    private static final String CONTACT_KEY = "contact_key";
     private static final String TAG = ContactDetails.class.getSimpleName();
     private static final int REQUEST_CODE_PICK_CONTACTS = 1;
     private static final int PERMISSIONS_REQUEST_READ_CONTACTS = 2;
@@ -46,12 +52,17 @@ public class ContactDetails extends AppCompatActivity {
 
     private ArrayList<Contact> mContacts = new ArrayList<>();
 
+    private SharedPreferences mPrefs;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contact_details);
 
         constraintLayout = (ConstraintLayout)findViewById(R.id.contactDetailsConstraint);
+
+        mPrefs = getPreferences(Context.MODE_PRIVATE);
+        mContacts = loadContacts();
 
         recyclerView = (RecyclerView)findViewById(R.id.emergencyContactList);
         mAdapter = new ContactsAdapter(mContacts);
@@ -60,6 +71,28 @@ public class ContactDetails extends AppCompatActivity {
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(mAdapter);
+
+        ItemTouchHelper helper = new ItemTouchHelper(
+                new ItemTouchHelper.SimpleCallback(0,
+                        (ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT)) {
+                    @Override
+                    public boolean onMove(RecyclerView rV,
+                                          RecyclerView.ViewHolder viewHolder,
+                                          RecyclerView.ViewHolder target) {
+                        return false;
+                    }
+
+                    @Override
+                    public void onSwiped(RecyclerView.ViewHolder viewHolder,
+                                         int direction) {
+                        int position = viewHolder.getAdapterPosition();
+                        mContacts.remove(position);
+                        mAdapter.notifyItemRemoved(position);
+                        saveContacts();
+                    }
+                });
+
+        helper.attachToRecyclerView(recyclerView);
 
         fab = (FloatingActionButton)findViewById(R.id.newContactFab);
 
@@ -78,6 +111,9 @@ public class ContactDetails extends AppCompatActivity {
                 }
             }
         });
+
+        String userMailId = getIntent().getStringExtra("userEmailId");
+        Toast.makeText(this, "inside contact details: "+userMailId, Toast.LENGTH_SHORT).show();
     }
 
     public void onClickSelectContact(){
@@ -97,6 +133,7 @@ public class ContactDetails extends AppCompatActivity {
 //            retrieveContactPhoto();
             mContacts.add(new Contact(retrieveContactName(),retrieveContactNumber(),retrieveContactPhoto()));
             mAdapter.notifyDataSetChanged();
+            saveContacts();
         }
     }
 
@@ -175,11 +212,31 @@ public class ContactDetails extends AppCompatActivity {
 
             assert inputStream != null;
             inputStream.close();
-            return photo;
-
         } catch (Exception e) {
             e.printStackTrace();
+        }finally {
+            return photo;
         }
-        return photo;
+    }
+
+    private ArrayList<Contact> loadContacts() {
+        Set<String> contactSet = mPrefs.getStringSet
+                (CONTACT_KEY, new HashSet<String>());
+        ArrayList<Contact> contacts = new ArrayList<>();
+        for (String contactString : contactSet) {
+            contacts.add(new Gson().fromJson(contactString, Contact.class));
+        }
+        return contacts;
+    }
+
+    private void saveContacts() {
+        SharedPreferences.Editor editor = mPrefs.edit();
+        editor.clear();
+        HashSet<String> contactSet = new HashSet<>();
+        for (Contact contact : mContacts) {
+            contactSet.add(new Gson().toJson(contact));
+        }
+        editor.putStringSet(CONTACT_KEY, contactSet);
+        editor.apply();
     }
 }

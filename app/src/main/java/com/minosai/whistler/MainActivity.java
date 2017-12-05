@@ -4,6 +4,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -39,6 +40,9 @@ public class MainActivity extends AppCompatActivity
     private FirebaseAuth.AuthStateListener authStateListener;
 
     public static final int RC_SIGN_IN = 1;
+    public String userMailId = null;
+
+    private SharedPreferences mPrefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +53,7 @@ public class MainActivity extends AppCompatActivity
 
         firebaseDatabase = FirebaseDatabase.getInstance();
         firebaseAuth = FirebaseAuth.getInstance();
-        databaseReference = firebaseDatabase.getReference();
+        databaseReference = firebaseDatabase.getReference().child("users");
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -59,6 +63,8 @@ public class MainActivity extends AppCompatActivity
 //                        .setAction("Action", null).show();
 //                addNotification();
                 Intent intent = new Intent(MainActivity.this, ContactDetails.class);
+                intent.putExtra("userEmailId",userMailId);
+                Toast.makeText(MainActivity.this, "Before intent put extra: "+userMailId, Toast.LENGTH_SHORT).show();
                 startActivity(intent);
             }
         });
@@ -78,7 +84,8 @@ public class MainActivity extends AppCompatActivity
                 FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
                 if(firebaseUser != null){
                     onSignedInInit(firebaseUser.getEmail().replaceAll(".",""));
-                    Toast.makeText(MainActivity.this, firebaseUser.getEmail().toString().replace(".",""), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, firebaseUser.getEmail().replace(".",""), Toast.LENGTH_SHORT).show();
+                    userMailId = firebaseUser.getEmail().toString().replace(".","");
                 }else{
                     onSignedOutCleaner();
                     startActivityForResult(
