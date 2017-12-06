@@ -10,12 +10,12 @@ public class Contact {
 
     private String contactName;
     private String contactNumber;
-    private Bitmap contactPhoto;
+//    private Bitmap contactPhoto;
 
-    public Contact(String contactName, String contactNumber, Bitmap contactPhoto) {
+    public Contact(String contactName, String contactNumber) {
         this.contactName = contactName;
         this.contactNumber = contactNumber;
-        this.contactPhoto = contactPhoto;
+//        this.contactPhoto = contactPhoto;
     }
 
     public String getContactName() {
@@ -34,13 +34,13 @@ public class Contact {
         this.contactNumber = contactNumber;
     }
 
-    public Bitmap getContactPhoto() {
-        return contactPhoto;
-    }
-
-    public void setContactPhoto(Bitmap contactPhoto) {
-        this.contactPhoto = contactPhoto;
-    }
+//    public Bitmap getContactPhoto() {
+//        return contactPhoto;
+//    }
+//
+//    public void setContactPhoto(Bitmap contactPhoto) {
+//        this.contactPhoto = contactPhoto;
+//    }
 
     public void sendMessage(String msg){
 //        TODO: send sms

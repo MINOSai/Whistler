@@ -125,7 +125,7 @@ public class MainActivity extends AppCompatActivity
                         .setContentText("This is a test notification")
                         .setOngoing(true);
 
-        Intent notificationIntent = new Intent(this, FullscreenActivity.class);
+        Intent notificationIntent = new Intent(this, ContactDetails.class);
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
         builder.setContentIntent(contentIntent);

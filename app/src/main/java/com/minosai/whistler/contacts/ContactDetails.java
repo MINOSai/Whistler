@@ -62,7 +62,7 @@ public class ContactDetails extends AppCompatActivity {
         constraintLayout = (ConstraintLayout)findViewById(R.id.contactDetailsConstraint);
 
         mPrefs = getPreferences(Context.MODE_PRIVATE);
-        mContacts = loadContacts();
+//        mContacts = loadContacts();
 
         recyclerView = (RecyclerView)findViewById(R.id.emergencyContactList);
         mAdapter = new ContactsAdapter(mContacts);
@@ -88,7 +88,7 @@ public class ContactDetails extends AppCompatActivity {
                         int position = viewHolder.getAdapterPosition();
                         mContacts.remove(position);
                         mAdapter.notifyItemRemoved(position);
-                        saveContacts();
+//                        saveContacts();
                     }
                 });
 
@@ -131,9 +131,9 @@ public class ContactDetails extends AppCompatActivity {
 //            retrieveContactName();
 //            retrieveContactNumber();
 //            retrieveContactPhoto();
-            mContacts.add(new Contact(retrieveContactName(),retrieveContactNumber(),retrieveContactPhoto()));
+            mContacts.add(new Contact(retrieveContactName(),retrieveContactNumber()));
             mAdapter.notifyDataSetChanged();
-            saveContacts();
+//            saveContacts();
         }
     }
 

@@ -38,9 +38,9 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
         String[] nameParts = currentContactName.split(" ");
         holder.contactName.setText(nameParts[0]+" "+nameParts[1]+" "+nameParts[2]);
 
-        if(currentContact.getContactPhoto() != null) {
-            holder.contactPhoto.setImageBitmap(currentContact.getContactPhoto());
-        }
+//        if(currentContact.getContactPhoto() != null) {
+//            holder.contactPhoto.setImageBitmap(currentContact.getContactPhoto());
+//        }
 
         holder.removeContact.setOnClickListener(new View.OnClickListener() {
             @Override
