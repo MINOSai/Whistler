@@ -1,257 +1,190 @@
 package com.minosai.whistler;
 
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.Context;
+import android.*;
+import android.content.ContentUris;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.Bundle;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v7.app.NotificationCompat;
-import android.view.View;
-import android.support.design.widget.NavigationView;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.constraint.ConstraintLayout;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.os.Bundle;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
-import com.firebase.ui.auth.AuthUI;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+import com.minosai.whistler.contacts.Contact;
 import com.minosai.whistler.contacts.ContactDetails;
+import com.minosai.whistler.contacts.ContactsAdapter;
 
-public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+import java.io.InputStream;
+import java.util.ArrayList;
 
-    private FirebaseDatabase firebaseDatabase;
-    private DatabaseReference databaseReference;
-    private ChildEventListener childEventListener;
-    private FirebaseAuth firebaseAuth;
-    private FirebaseAuth.AuthStateListener authStateListener;
+public class MainActivity extends AppCompatActivity {
 
-    public static final int RC_SIGN_IN = 1;
-    public String userMailId = null;
+    private static final int REQUEST_CODE_PICK_CONTACTS = 1;
+    private static final int PERMISSIONS_REQUEST_READ_CONTACTS = 2;
 
-    private SharedPreferences mPrefs;
+    private RecyclerView recyclerView;
+    private ConstraintLayout constraintLayout;
+    private ContactsAdapter mAdapter;
+    private Uri uriContact;
+    private String contactID;
+    private ArrayList<Contact> mContacts = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
-        firebaseDatabase = FirebaseDatabase.getInstance();
-        firebaseAuth = FirebaseAuth.getInstance();
-        databaseReference = firebaseDatabase.getReference().child("users");
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        constraintLayout = (ConstraintLayout)findViewById(R.id.new_contact_constraintlayout);
+        constraintLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-//                addNotification();
-                Intent intent = new Intent(MainActivity.this, ContactDetails.class);
-                intent.putExtra("userEmailId",userMailId);
-                Toast.makeText(MainActivity.this, "Before intent put extra: "+userMailId, Toast.LENGTH_SHORT).show();
-                startActivity(intent);
+                if (ContextCompat.checkSelfPermission(MainActivity.this,
+                        android.Manifest.permission.READ_CONTACTS)
+                        != PackageManager.PERMISSION_GRANTED) {
+
+                    ActivityCompat.requestPermissions(MainActivity.this,
+                            new String[]{android.Manifest.permission.READ_CONTACTS},
+                            PERMISSIONS_REQUEST_READ_CONTACTS);
+                }else {
+                    onClickSelectContact();
+                }
             }
         });
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
+        recyclerView = (RecyclerView)findViewById(R.id.emergency_contact_recyclerview);
+        mAdapter = new ContactsAdapter(mContacts);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.setAdapter(mAdapter);
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
+        ItemTouchHelper helper = new ItemTouchHelper(
+                new ItemTouchHelper.SimpleCallback(0,
+                        (ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT)) {
+                    @Override
+                    public boolean onMove(RecyclerView rV,
+                                          RecyclerView.ViewHolder viewHolder,
+                                          RecyclerView.ViewHolder target) {
+                        return false;
+                    }
 
-        authStateListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
-                if(firebaseUser != null){
-                    onSignedInInit(firebaseUser.getEmail().replaceAll(".",""));
-                    Toast.makeText(MainActivity.this, firebaseUser.getEmail().replace(".",""), Toast.LENGTH_SHORT).show();
-                    userMailId = firebaseUser.getEmail().toString().replace(".","");
+                    @Override
+                    public void onSwiped(RecyclerView.ViewHolder viewHolder,
+                                         int direction) {
+                        int position = viewHolder.getAdapterPosition();
+                        mContacts.remove(position);
+                        mAdapter.notifyItemRemoved(position);
+//                        saveContacts();
+                    }
+                });
+
+        helper.attachToRecyclerView(recyclerView);
+    }
+
+    public void onClickSelectContact(){
+        startActivityForResult(new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI), REQUEST_CODE_PICK_CONTACTS);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode){
+            case PERMISSIONS_REQUEST_READ_CONTACTS: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                    onClickSelectContact();
                 }else{
-                    onSignedOutCleaner();
-                    startActivityForResult(
-                            AuthUI.getInstance()
-                            .createSignInIntentBuilder()
-                            .setIsSmartLockEnabled(false)
-                                    .setProviders(AuthUI.EMAIL_PROVIDER,AuthUI.GOOGLE_PROVIDER)
-                            .build(),
-                            RC_SIGN_IN
-                    );
+                    Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show();
                 }
             }
-        };
+            default: {
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            }
+        }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode){
-            case RC_SIGN_IN: {
-                if(resultCode == RESULT_OK){
-                    Toast.makeText(this, "Signed in!", Toast.LENGTH_SHORT).show();
-                }
-                else if (resultCode == RESULT_CANCELED){
-                    Toast.makeText(this, "Sign in canceled", Toast.LENGTH_SHORT).show();
-                    finish();
-                }
+
+        if(requestCode == REQUEST_CODE_PICK_CONTACTS && resultCode == RESULT_OK){
+            uriContact = data.getData();
+            mContacts.add(new Contact(retrieveContactName(),retrieveContactNumber()));
+            mAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private String retrieveContactNumber() {
+
+        String contactNumber = null;
+
+        Cursor cursorID = getContentResolver().query(uriContact,
+                new String[]{ContactsContract.Contacts._ID},
+                null, null, null);
+        if (cursorID.moveToFirst()) {
+
+            contactID = cursorID.getString(cursorID.getColumnIndex(ContactsContract.Contacts._ID));
+        }
+        cursorID.close();
+
+        Cursor cursorPhone = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                new String[]{ContactsContract.CommonDataKinds.Phone.NUMBER},
+
+                ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ? AND " +
+                        ContactsContract.CommonDataKinds.Phone.TYPE + " = " +
+                        ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE,
+
+                new String[]{contactID},
+                null);
+        if (cursorPhone.moveToFirst()) {
+            contactNumber = cursorPhone.getString(cursorPhone.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+        }
+        cursorPhone.close();
+        return contactNumber;
+    }
+
+    private String retrieveContactName() {
+
+        String contactName = null;
+        Cursor cursor = getContentResolver().query(uriContact, null, null, null, null);
+        if (cursor.moveToFirst()) {
+            contactName = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+        }
+        cursor.close();
+        return contactName;
+
+    }
+
+    private Bitmap retrieveContactPhoto() {
+
+        Bitmap photo = null;
+        try {
+            InputStream inputStream = ContactsContract.Contacts.openContactPhotoInputStream(getContentResolver(),
+                    ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, new Long(contactID)));
+
+            if (inputStream != null) {
+                photo = BitmapFactory.decodeStream(inputStream);
+//                return photo;
             }
-        }
-    }
 
-    private void addNotification() {
-        NotificationCompat.Builder builder =
-                (NotificationCompat.Builder) new NotificationCompat.Builder(this)
-                        .setSmallIcon(R.drawable.ic_menu_send)
-                        .setContentTitle("Notifications Example")
-                        .setContentText("This is a test notification")
-                        .setOngoing(true);
-
-        Intent notificationIntent = new Intent(this, ContactDetails.class);
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-        builder.setContentIntent(contentIntent);
-        builder.setPriority(5);
-
-        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        manager.notify(0, builder.build());
-    }
-
-    @Override
-    public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @SuppressWarnings("StatementWithEmptyBody")
-    @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
-
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-            addNotification();
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-            AuthUI.getInstance().signOut(this);
-        }
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
-    }
-
-    @Override
-    protected void onPause(){
-        super.onPause();
-        firebaseAuth.removeAuthStateListener(authStateListener);
-        detachDatabaseReadListener();
-//        mMessageAdapter.clear();
-    }
-
-    @Override
-    protected void onResume(){
-        super.onResume();
-        firebaseAuth.addAuthStateListener(authStateListener);
-    }
-
-    private void onSignedInInit(String username){
-//        mUsername = username;
-        attachDatabaseReadListener();
-    }
-
-    private void onSignedOutCleaner(){
-//        mUsername = ANONYMOUS;
-//        mMessageAdapter.clear();
-        detachDatabaseReadListener();
-    }
-
-    private void attachDatabaseReadListener(){
-        if(childEventListener==null) {
-            childEventListener = new ChildEventListener() {
-                @Override
-                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-//                    Message message = dataSnapshot.getValue(Message.class);
-//                    mMessageAdapter.add(message);
-//                    scrollMyListViewToBottom();
-                }
-
-                @Override
-                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                }
-
-                @Override
-                public void onChildRemoved(DataSnapshot dataSnapshot) {
-                }
-
-                @Override
-                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-                }
-            };
-            databaseReference.addChildEventListener(childEventListener);
-        }
-    }
-
-    private void detachDatabaseReadListener(){
-        if(childEventListener!=null) {
-            databaseReference.removeEventListener(childEventListener);
-            childEventListener = null;
+            assert inputStream != null;
+            inputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }finally {
+            return photo;
         }
     }
 }

@@ -37,20 +37,6 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
         String currentContactName = currentContact.getContactName();
         String[] nameParts = currentContactName.split(" ");
         holder.contactName.setText(nameParts[0]+" "+nameParts[1]+" "+nameParts[2]);
-
-//        if(currentContact.getContactPhoto() != null) {
-//            holder.contactPhoto.setImageBitmap(currentContact.getContactPhoto());
-//        }
-
-        holder.removeContact.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                int removePosition = holder.getAdapterPosition();
-                mContacts.remove(removePosition);
-                notifyItemRemoved(removePosition);
-                notifyItemRangeChanged(removePosition, mContacts.size());
-            }
-        });
     }
 
     @Override
@@ -60,16 +46,14 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
 
     class ViewHolder extends RecyclerView.ViewHolder{
 
-        TextView contactName,contactNumber,emptyText;
-        ImageView contactPhoto,removeContact;
+        TextView contactName,contactNumber;
+//        ImageView contactPhoto;
 
         public ViewHolder(View itemView) {
             super(itemView);
             contactName = itemView.findViewById(R.id.contactName);
             contactNumber = itemView.findViewById(R.id.contactNumber);
-            contactPhoto = itemView.findViewById(R.id.contact_photo_imageview);
-            removeContact = itemView.findViewById(R.id.contact_delete_imageview);
-            emptyText = itemView.findViewById(R.id.contactsEmptyTextView);
+//            contactPhoto = itemView.findViewById(R.id.contact_photo_imageview);
         }
     }
 }
