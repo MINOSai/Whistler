@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "875832172205",
+    "firebase_url": "https://whistler-960cd.firebaseio.com",
+    "project_id": "whistler-960cd",
+    "storage_bucket": "whistler-960cd.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:875832172205:android:6b287e431c0d4f0d",
+        "android_client_info": {
+          "package_name": "com.minosai.whistler"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "875832172205-eheuacr7befvf4fi159a48tq7nk29o3q.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.minosai.whistler",
+            "certificate_hash": "15f1b15ff32abfbde058df2505a3e0f278205a6e"
+          }
+        },
+        {
+          "client_id": "875832172205-46acuu564400dhthqjkgqofosto7o2fn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAS_gsztzEZMMhrnJoCJGM7QZs-Oa3UTFs"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "875832172205-46acuu564400dhthqjkgqofosto7o2fn.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

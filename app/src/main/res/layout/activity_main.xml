@@ -23,9 +23,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:dividerPadding="2dp"
             android:orientation="vertical"
-            android:showDividers="middle">
+            android:showDividers="beginning|middle|end">
 
             <android.support.constraint.ConstraintLayout
                 android:layout_width="match_parent"
@@ -80,10 +79,8 @@
                 android:id="@+id/new_contact_constraintlayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@android:color/transparent"
                 android:clickable="true"
-                android:foreground="?android:attr/selectableItemBackground"
-                android:hapticFeedbackEnabled="false">
+                android:foreground="?android:attr/selectableItemBackground">
 
                 <TextView
                     android:id="@+id/textView3"
